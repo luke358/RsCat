@@ -95,8 +95,7 @@ impl TrayController {
     }
 
     pub fn set_icon(&self, frame: &RunnerFrame) -> Result<()> {
-        self.tray
-            .set_icon_with_as_template(Some(icon_from_frame(frame)?), tray_icon_is_template())?;
+        set_tray_icon(&self.tray, frame)?;
         Ok(())
     }
 
@@ -186,6 +185,18 @@ fn icon_from_frame(frame: &RunnerFrame) -> Result<Icon> {
         frame.width,
         frame.height,
     )?)
+}
+
+#[cfg(target_os = "macos")]
+fn set_tray_icon(tray: &TrayIcon, frame: &RunnerFrame) -> Result<()> {
+    tray.set_icon_with_as_template(Some(icon_from_frame(frame)?), true)?;
+    Ok(())
+}
+
+#[cfg(not(target_os = "macos"))]
+fn set_tray_icon(tray: &TrayIcon, frame: &RunnerFrame) -> Result<()> {
+    tray.set_icon(Some(icon_from_frame(frame)?))?;
+    Ok(())
 }
 
 #[cfg(target_os = "macos")]
