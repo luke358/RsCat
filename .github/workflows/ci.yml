@@ -28,9 +28,6 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Cache cargo
-        uses: Swatinem/rust-cache@v2
-
       - name: Install Linux dependencies
         if: runner.os == 'Linux'
         run: |
