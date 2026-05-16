@@ -1,0 +1,17 @@
+[package]
+name = "rscat-tray"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[[bin]]
+name = "rscat"
+path = "src/main.rs"
+
+[dependencies]
+anyhow.workspace = true
+rscat-core = { path = "../rscat-core" }
+rscat-ui = { path = "../rscat-ui" }
+slint.workspace = true
+tray-icon.workspace = true

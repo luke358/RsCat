@@ -1,0 +1,22 @@
+[workspace]
+members = [
+    "crates/rscat-core",
+    "crates/rscat-ui",
+    "crates/rscat-tray",
+]
+resolver = "2"
+
+[workspace.package]
+edition = "2021"
+license = "Apache-2.0"
+repository = "https://github.com/zxc/RsCat"
+
+[workspace.dependencies]
+anyhow = "1"
+image = { version = "0.25", default-features = false, features = ["png"] }
+serde = { version = "1", features = ["derive"] }
+slint = "1"
+sysinfo = "0.38"
+thiserror = "2"
+toml = "0.8"
+tray-icon = "0.24"
