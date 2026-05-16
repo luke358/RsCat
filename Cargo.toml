@@ -19,4 +19,4 @@ slint = "1"
 sysinfo = "0.38"
 thiserror = "2"
 toml = "0.8"
-tray-icon = "0.24"
+tray-icon = { version = "0.24", default-features = false, features = ["gtk"] }
