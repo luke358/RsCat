@@ -16,9 +16,6 @@ use std::{
 use tray::{TrayAction, TrayController};
 
 fn main() -> Result<()> {
-    #[cfg(target_os = "linux")]
-    tray_icon::gtk::init().context("failed to initialize GTK for Linux tray support")?;
-
     let settings = Rc::new(RefCell::new(Settings::load()?));
     let initial_settings = settings.borrow().clone();
     let frames = Rc::new(RefCell::new(load_runner_frames(initial_settings.runner)?));

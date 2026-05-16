@@ -36,5 +36,5 @@ The first release pipeline is unsigned. macOS notarization, Windows signing, Lin
 ## Platform Notes
 
 - Windows and macOS are first-class targets.
-- Linux tray support depends on the desktop environment and AppIndicator/KStatusNotifier support.
+- Linux tray support depends on the desktop environment, GTK event loop compatibility, and AppIndicator/KStatusNotifier support.
 - GPU, temperature, launch-at-startup integration, packaging, and the endless game are intentionally outside the first MVP.
