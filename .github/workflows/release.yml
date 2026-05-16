@@ -1,0 +1,140 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build ${{ matrix.target }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-14
+            target: aarch64-apple-darwin
+            archive: rscat-${{ github.ref_name }}-macos-aarch64.zip
+          - os: macos-15-intel
+            target: x86_64-apple-darwin
+            archive: rscat-${{ github.ref_name }}-macos-x86_64.zip
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            archive: rscat-${{ github.ref_name }}-windows-x86_64.zip
+          - os: ubuntu-24.04
+            target: x86_64-unknown-linux-gnu
+            archive: rscat-${{ github.ref_name }}-linux-x86_64.tar.gz
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+
+      - name: Install Linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libx11-dev \
+            libxcb1-dev \
+            libxrandr-dev \
+            libxrender-dev \
+            libxkbcommon-dev \
+            libxkbcommon-x11-dev \
+            libgtk-3-dev \
+            libayatana-appindicator3-dev
+
+      - name: Build
+        run: cargo build --release --locked --target ${{ matrix.target }} -p rscat-tray
+
+      - name: Package macOS
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          set -euo pipefail
+          app_dir="dist/RsCat.app"
+          version="${GITHUB_REF_NAME#v}"
+          mkdir -p "$app_dir/Contents/MacOS" "$app_dir/Contents/Resources"
+          cp "target/${{ matrix.target }}/release/rscat" "$app_dir/Contents/MacOS/RsCat"
+          printf '%s\n' \
+            '<?xml version="1.0" encoding="UTF-8"?>' \
+            '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">' \
+            '<plist version="1.0">' \
+            '<dict>' \
+            '  <key>CFBundleDevelopmentRegion</key>' \
+            '  <string>en</string>' \
+            '  <key>CFBundleExecutable</key>' \
+            '  <string>RsCat</string>' \
+            '  <key>CFBundleIdentifier</key>' \
+            '  <string>dev.rscat.RsCat</string>' \
+            '  <key>CFBundleInfoDictionaryVersion</key>' \
+            '  <string>6.0</string>' \
+            '  <key>CFBundleName</key>' \
+            '  <string>RsCat</string>' \
+            '  <key>CFBundlePackageType</key>' \
+            '  <string>APPL</string>' \
+            '  <key>CFBundleShortVersionString</key>' \
+            "  <string>${version}</string>" \
+            '  <key>CFBundleVersion</key>' \
+            "  <string>${GITHUB_RUN_NUMBER}</string>" \
+            '  <key>LSMinimumSystemVersion</key>' \
+            '  <string>12.0</string>' \
+            '  <key>LSUIElement</key>' \
+            '  <true/>' \
+            '</dict>' \
+            '</plist>' \
+            > "$app_dir/Contents/Info.plist"
+          ditto -c -k --keepParent "$app_dir" "${{ matrix.archive }}"
+
+      - name: Package Windows
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force dist | Out-Null
+          Copy-Item "target/${{ matrix.target }}/release/rscat.exe" "dist/RsCat.exe"
+          Compress-Archive -Path "dist/RsCat.exe" -DestinationPath "${{ matrix.archive }}"
+
+      - name: Package Linux
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          cp "target/${{ matrix.target }}/release/rscat" "dist/rscat"
+          tar -czf "${{ matrix.archive }}" -C dist rscat
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.archive }}
+          path: ${{ matrix.archive }}
+          if-no-files-found: error
+
+  publish:
+    name: Publish GitHub Release
+    needs: build
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          generate_release_notes: true

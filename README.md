@@ -15,6 +15,24 @@ cargo check
 cargo run -p rscat-tray
 ```
 
+## Release
+
+Create and push a version tag:
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+GitHub Actions will build and publish a GitHub Release with:
+
+- macOS Apple Silicon `.app.zip`
+- macOS Intel `.app.zip`
+- Windows x64 `.exe.zip`
+- Linux x64 `.tar.gz`
+
+The first release pipeline is unsigned. macOS notarization, Windows signing, Linux desktop files, and installer formats are separate packaging steps.
+
 ## Platform Notes
 
 - Windows and macOS are first-class targets.
