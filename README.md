@@ -64,3 +64,7 @@ This is only for local testing. Public distribution should use Developer ID sign
 - Windows and macOS are first-class targets.
 - Linux tray support depends on the desktop environment, GTK event loop compatibility, and AppIndicator/KStatusNotifier support.
 - GPU, temperature, launch-at-startup integration, packaging, and the endless game are intentionally outside the first MVP.
+
+## Links
+
+- [linux.do](https://linux.do/)
